@@ -95,13 +95,16 @@ server.get('/', (req, res) => {
 
 function getMatchingPrimaryKey(primaryKey, version, restorePaths=[], exactMatch = true) {
     let row;
-    if(exactMatch === false)
+    console.log(`getMatchingPrimaryKey(primaryKey=${primaryKey}  version=${version} restorePaths=${restorePaths}  exactMatch=${exactMatch}`);
+    if(exactMatch === true)
     {
         row = db.prepare("SELECT * FROM caches WHERE key = ? AND version = ?").get(primaryKey, version);
+        console.log(`exact query key=${primaryKey} version=${version} row=${row}`);
     }
     else
     {
         row = db.prepare(`SELECT * FROM caches WHERE key LIKE '${primaryKey}%' AND version = '${version}' ORDER BY id DESC`).get();
+        console.log(`prefix query key=${primaryKey} version=${version} row=${row}`);
     }
     if(row !== undefined)
     {
@@ -187,9 +190,10 @@ server.post('/_apis/artifactcache/caches', (req, res) => {
     const row = db.prepare("SELECT * FROM caches WHERE key = ? AND version = ?").get(key, version);
     if(row !== undefined) {
         if (Boolean(row.complete)) {
-            const err = `Cache id ${row.id} was already uploaded`;
+            const err = `Cache id ${row.id} was already uploaded; continue anyway`;
             console.error(err);
-            res.status(400).json({error: err});
+            res.status(200).json({cacheId: row.id});
+            //res.status(400).json({error: err});
         } else if (Boolean(row.started)) {
             const err = `Cache id ${row.id} is already reserved and uploading`;
             console.error(err);
@@ -264,11 +268,11 @@ server.patch('/_apis/artifactcache/caches/:cacheId', (req, res) => {
         console.error(err);
         res.status(400).json({error: err});
     }
-    else if (Boolean(row.complete)){
+    /*else if (Boolean(row.complete)){
         const err = `Upload cache with ${row.id} has already been committed and completed`;
         console.error(err);
         res.status(400).json({error: err});
-    } else {
+    }*/ else {
         if (!Boolean(row.started)){
             console.log(`Upload for cache id ${row.id} started`)
             db.prepare("UPDATE caches SET started = 1 WHERE id = ?").run(row.id);
@@ -290,11 +294,11 @@ server.post('/_apis/artifactcache/caches/:cacheId', (req, res) => {
         console.error(err);
         res.status(400).json({error: err});
     }
-    else if (Boolean(row.complete)){
+    /*else if (Boolean(row.complete)){
         const err = `Upload cache with ${row.id} has already been committed and completed`;
         console.error(err);
         res.status(400).json({error: err});
-    }
+    } */
     else if (!Boolean(row.started)){
         const err = `Upload for cache id ${row.id} has been reserved but never started uploading`;
         console.error(err);
