@@ -15,6 +15,7 @@ Ensure you add the following configuration to your `~/.actrc` file:
 ````
 
 ## Observations
+- You can set `ACT_CACHE_PORT` if the default port of `8080` doesn't work in your environment
 - You can set `ACT_CACHE_AUTH_KEY` and `ACTIONS_RUNTIME_TOKEN` to the value you want, but they must be the same
 - The cache is persisted in Docker's named volumes(when using `docker-compose`) so it will survive between containers
 - To purge the cache use the endpoint `/_apis/artifactcache/clean`. ie
